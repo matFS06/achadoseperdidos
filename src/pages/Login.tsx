@@ -1,17 +1,34 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react';
 import { Button, Form, FormGroup, Label, Input, Row, Col, FormText } from 'reactstrap';
-import { Link } from 'react-router-dom';  // Usando o Link do React Router
+import { Link, useNavigate } from 'react-router-dom';  // Adicionado useNavigate
+import axios from 'axios';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate(); // Para redirecionamento
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login feito com sucesso!");
-    // Aqui você pode adicionar a lógica de autenticação.
+    setError('');
+
+    try {
+      const response = await axios.post('http://localhost:5000/login', {
+        email,
+        password,
+      });
+
+      if (response.data.success) {
+        console.log("✅ Login bem-sucedido!");
+        navigate('/items');  // Redireciona para a página de itens
+      }
+    } catch (err: any) {
+      console.error('❌ Erro ao fazer login:', err);
+      setError(err.response?.data?.message || 'Erro ao autenticar.');
+    }
   };
 
   return (
@@ -19,26 +36,27 @@ const Login = () => {
       <Row className="justify-content-center">
         <Col md={6} lg={4} sm={8}>
           <h2 className="text-center mb-4">Login</h2>
+          {error && <p className="text-danger text-center">{error}</p>}
           <Form onSubmit={handleLogin}>
             <FormGroup>
-              <Label for="username">Username</Label>
+              <Label for="email">E-mail</Label>
               <Input
-                type="text"
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu e-mail"
                 required
               />
             </FormGroup>
             <FormGroup>
-              <Label for="password">Password</Label>
+              <Label for="password">Senha</Label>
               <Input
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Digite sua senha"
                 required
               />
             </FormGroup>

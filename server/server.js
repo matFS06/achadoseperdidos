@@ -47,5 +47,30 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// Rota de login
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND password = $2',
+      [email, password]
+    );
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, message: 'Login realizado com sucesso!' });
+    } else {
+      res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
+    }
+  } catch (error) {
+    console.error('❌ Erro ao autenticar usuário:', error);
+    res.status(500).json({ message: 'Erro ao autenticar o usuário.', error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log("🚀 Servidor rodando na porta ${PORT}"));
