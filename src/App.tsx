@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ItemList from './pages/ItemList';
+import ItemCadastro from './pages/ItemCadastro'; // Importando a nova tela
 
 const App: React.FC = () => {
   return (
@@ -12,7 +13,8 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home />} />
-        <Route path="/items" element={<ItemList />} />
+        <Route path="/itens" element={<ItemList />} />
+        <Route path="/itens/new" element={<ItemCadastro />} /> {/* Nova rota para cadastro */}
       </Routes>
     </Router>
   );

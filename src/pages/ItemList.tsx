@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Input, Form, FormGroup, Label } from 'reactstrap';
+import { useNavigate } from 'react-router-dom'; // Importando useNavigate
 import axios from 'axios';
 
 interface Item {
@@ -13,6 +14,7 @@ const ItemList: React.FC = () => {
   const [itens, setItens] = useState<Item[]>([]);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>('');
   const [termoBusca, setTermoBusca] = useState<string>('');
+  const navigate = useNavigate(); // Hook para navegação
 
   useEffect(() => {
     axios.get('http://localhost:5000/api/itens')
@@ -34,7 +36,9 @@ const ItemList: React.FC = () => {
           <h2>Itens Perdidos & Encontrados</h2>
         </Col>
         <Col className="text-end">
-          <Button color="primary">+ Novo Item</Button>
+          <Button color="primary" onClick={() => navigate('/itens/new')}>
+            + Novo Item
+          </Button>
         </Col>
       </Row>
 
