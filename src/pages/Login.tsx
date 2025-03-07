@@ -1,7 +1,6 @@
-// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { Button, Form, FormGroup, Label, Input, Row, Col, FormText } from 'reactstrap';
-import { Link, useNavigate } from 'react-router-dom';  // Adicionado useNavigate
+import { Link, useNavigate } from 'react-router-dom'; 
 import axios from 'axios';
 
 const Login = () => {
@@ -13,7 +12,7 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError('');  // Limpar o erro antes de tentar login
 
     try {
       const response = await axios.post('http://localhost:5000/login', {
@@ -23,7 +22,7 @@ const Login = () => {
 
       if (response.data.success) {
         console.log("✅ Login bem-sucedido!");
-        navigate('/items');  // Redireciona para a página de itens
+        navigate('/itens');  // Redireciona para a página de itens
       }
     } catch (err: any) {
       console.error('❌ Erro ao fazer login:', err);
