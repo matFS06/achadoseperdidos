@@ -1,94 +1,87 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const supabase = window.supabaseClient;
     
-    const nomeUsuarioEl = document.getElementById('nome-usuario');
     const gridItens = document.getElementById('grid-itens');
     const inputPesquisa = document.getElementById('pesquisa');
     const selectFiltro = document.getElementById('filtro');
-    const btnLogout = document.getElementById('btn-logout');
+    
+    // Instancia o modal do Bootstrap
+    const modalBootstrap = new bootstrap.Modal(document.getElementById('modalDetalhesItem'));
+    const modalConteudo = document.getElementById('modal-conteudo');
 
     let todosOsItens = [];
 
-    // [Ajuste Demo] Nome do usuário estático no topo para a versão de testes
-    if (nomeUsuarioEl) {
-        nomeUsuarioEl.textContent = "Usuário Demo";
-    }
-
-    // 1. Buscar itens direto do Supabase
+    // 1. Buscar itens direto do Supabase (Sem travar por login!)
     async function buscarItens() {
         try {
-            // Buscando os dados da tabela 'itens' ordenados pelos mais recentes
             const { data, error } = await supabase
                 .from('itens')
-                .select('*')
-                .order('created_at', { ascending: false });
+                .select('*');
 
             if (error) throw error;
-            
             todosOsItens = data || [];
             filtrarERenderizar();
         } catch (error) {
             console.error('Erro ao buscar itens:', error);
-            gridItens.innerHTML = '<div class="col-12"><p class="text-danger text-center">Erro ao carregar os itens.</p></div>';
+            gridItens.innerHTML = '<p class="text-danger">Erro ao carregar os itens. Verifique a conexão com o banco.</p>';
         }
     }
 
     // 2. Filtrar e Renderizar os itens na tela
     function filtrarERenderizar() {
-        const termoBusca = inputPesquisa.value.toLowerCase().trim();
+        const termoBusca = inputPesquisa.value.toLowerCase();
         const categoriaSelecionada = selectFiltro.value;
 
         const itensFiltrados = todosOsItens.filter(item => {
-            // Verifica se a categoria bate com o select ou se está em 'Todos'
             const bateCategoria = (categoriaSelecionada === 'Todos' || item.categoria === categoriaSelecionada);
-            
-            // Verifica se o termo digitado bate com o Nome OU com a Descrição do item
-            const bateNome = item.nome.toLowerCase().includes(termoBusca) || 
-                             item.descricao.toLowerCase().includes(termoBusca);
-                             
+            const bateNome = item.nome.toLowerCase().includes(termoBusca);
             return bateCategoria && bateNome;
         });
 
-        // Caso a busca não retorne nada
         if (itensFiltrados.length === 0) {
             gridItens.innerHTML = '<div class="col-12"><p class="text-muted text-center">Nenhum item encontrado.</p></div>';
             return;
         }
 
-        // Renderiza os cards usando o seu método .map()
-        gridItens.innerHTML = itensFiltrados.map(item => `
-            <div class="col-12 col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 p-3 border rounded shadow-sm bg-white">
-                    ${item.imagem_url ? `
-                        <img src="${item.imagem_url}" class="card-img-top rounded mb-2" style="height: 180px; width: 100%; object-fit: cover; border: 1px solid #eee;">
-                    ` : ''}
-                    <div class="card-body p-0 d-flex flex-column h-100">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge ${item.status === 'Perdido' ? 'bg-danger' : 'bg-success'}">${item.status}</span>
-                            <small class="text-muted"><strong>Categoria:</strong> ${item.categoria}</small>
-                        </div>
-                        <h5 class="card-title">${item.nome}</h5>
-                        <p class="card-text text-muted flex-grow-1" style="font-size: 0.95rem;">${item.descricao}</p>
-                        <hr class="my-2" style="opacity: 0.1;">
-                        <p class="mb-1" style="font-size: 0.85rem;">📍 <strong>Local:</strong> ${item.localizacao || 'Não informado'}</p>
-                        <p class="mb-0" style="font-size: 0.85rem;">📞 <strong>Contato:</strong> ${item.contato}</p>
-                    </div>
+        gridItens.innerHTML = itensFiltrados.map((item) => `
+            <div class="col-md-4 mb-4">
+                <div class="p-3 border rounded shadow-sm bg-white h-100 card-item-animado" onclick="mostrarDetalhes(${item.id})">
+                    ${item.imagem_url ? `<img src="${item.imagem_url}" class="img-fluid rounded mb-2" style="max-height: 150px; width: 100%; object-fit: cover;">` : ''}
+                    <h5>${item.nome}</h5>
+                    <p class="mb-1"><strong>Categoria:</strong> ${item.categoria}</p>
+                    <p class="mb-1 text-muted"><strong>Local:</strong> ${item.localizacao || 'Não informado'}</p>
+                    <span class="badge ${item.status === 'Perdido' ? 'bg-danger' : 'bg-success'} mb-2">${item.status}</span>
+                    <p class="text-truncate">${item.descricao}</p>
                 </div>
             </div>
         `).join('');
     }
 
-    // Eventos para filtros em tempo real ao digitar ou mudar o select
+    // 3. Função para ampliar o card dentro do Modal
+    window.mostrarDetalhes = function(idItem) {
+        const item = todosOsItens.find(i => i.id === idItem);
+        if (!item) return;
+
+        modalConteudo.innerHTML = `
+            ${item.imagem_url ? `<img src="${item.imagem_url}" class="img-fluid rounded mb-3" style="max-height: 300px; width: 100%; object-fit: contain;">` : ''}
+            <h3>${item.nome}</h3>
+            <span class="badge ${item.status === 'Perdido' ? 'bg-danger' : 'bg-success'} mb-3 fs-6">${item.status}</span>
+            
+            <div class="text-start p-2 bg-light rounded">
+                <p><strong>Categoria:</strong> ${item.categoria}</p>
+                <p><strong>Local onde foi visto:</strong> ${item.localizacao || 'Não informado'}</p>
+                <p><strong>Descrição detalhada:</strong> ${item.descricao}</p>
+                <hr>
+                <p class="mb-0 text-primary"><strong>Contato para devolução:</strong> ${item.contato}</p>
+            </div>
+        `;
+
+        modalBootstrap.show();
+    };
+
+    // Eventos de digitação e filtros
     inputPesquisa.addEventListener('input', filtrarERenderizar);
     selectFiltro.addEventListener('change', filtrarERenderizar);
 
-    // Lógica do Logout simplificada para a Home
-    if (btnLogout) {
-        btnLogout.addEventListener('click', () => {
-            window.location.href = 'index.html';
-        });
-    }
-
-    // Iniciar a busca automática assim que a página carregar
     buscarItens();
 });
