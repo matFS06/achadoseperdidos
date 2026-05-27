@@ -67,3 +67,15 @@ h1 {
     color: #747bff;
   }
 }
+
+/* Efeito de animação nos Cards de Itens */
+.card-item-animado {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer; /* Transforma a seta do mouse na mãozinha de clique */
+}
+
+/* Quando o cursor passar por cima (Hover) */
+.card-item-animado:hover {
+    transform: translateY(-5px); /* Move o card 5 pixels para cima */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important; /* Deixa a sombra mais forte */
+}
